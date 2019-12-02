@@ -1,0 +1,41 @@
+TODO :
+
+
+    - Créer un affichage du profil de l'utilisateur
+    - Créer un formulaire de modification du profil d'utilisateur, avec ajout d'avatars.
+
+    - Créer une table qui relie un utilisateur et un article (user_post)
+    
+    - Améliorer les messages (feedback) utilisateur avec disparition du message après quelques secondes (sleep()?)
+    - Créer la page d'accueil de l'administration avec des stats sur les données du site (Nb d'articles, nb d'utilisateur)
+    - Ajouter la possibilité d'ajouter une galerie d'images à l'article
+    - Ajouter la possiblité de liker un article si l'utilisateur est connécté
+    - AMELIORATION: Le fichier "e.404.php" s'affiche mais n'est visible qu'en scrollant!
+    
+
+
+
+    <!-- INPUT TYPE SELECT (selection de la catégorie) -->
+    <div class="form-group">
+        <label for="category">
+            Catégories 
+        </label>
+        <!-- Condition si il y des erreurs 'category' on retoure "is-invalid" sinon on retourne vide '' -->
+        <select multiple class="form-control <?= isset($errors['category']) ? " is-invalid" : '' ?>" name="category" id="category">
+            <?php foreach($categoriesById as $key => $category): ?>
+                <!-- AFFICHAGE DES CATEGORIE (avec l'id en index) -->
+                <option><?= $key . ' . ' . $category ?></option>
+            <?php endforeach;?>
+        </select>
+        <div class="invalid-feedback">
+            Choisissez une catégorie
+        </div>
+    </div>
+
+
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" name='category[]' value="<?= $id ?>" id="<?= $id . ' . ' . $category ?>">
+        <label class="form-check-label" for="category[]">
+            <?= $category ?>
+        </label>
+    </div>
