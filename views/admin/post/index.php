@@ -55,7 +55,7 @@ $link = $router->url('admin_posts');
                 </td>
                 <td>
                     <!-- IMAGE (aperçu) -->
-                    <img src="../../assets/img/<?= $post->getPicture() ?>"
+                    <img src="../../assets/upload/img/<?= $post->getPicture() ?>"
                         class="rounded float-left img-thumbnail img-fluid"
                         style="width: 120px; height: 70px; background-color: rgba(100,0,255,0.2);"
                         name="<?= $post->getPicture() ?>"

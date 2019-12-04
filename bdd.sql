@@ -8,7 +8,6 @@ CREATE TABLE post(
     slug VARCHAR(255) NOT NULL,
     content TEXT(650000) NOT NULL,
     created_at DATETIME NOT NULL,
-    logo VARCHAR(255) DEFAULT NULL,
     likes INT DEFAULT NULL,
     isLiked BOOLEAN NOT NULL,
     PRIMARY KEY (id)

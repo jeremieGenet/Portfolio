@@ -2,10 +2,9 @@
 /* 
     PAGE DE CREATION D'UN ARTILCE (post)
 */
-use App\Models\Post;
+use App\Models\{Post, Logo};
 use App\FileTransfer;
-use App\Models\Category;
-use App\Table\PostTable;
+use App\Table\{PostTable, LogoTable};
 use App\HTML\Notification;
 use App\Table\CategoryTable;
 use App\Validators\PostValidator;
@@ -23,61 +22,30 @@ $categoriesById = $category->findById();
 
 $postTable = new PostTable($pdo);
 $post = new Post(); // Création d'un objet vide (qui contiendra les données de notre new post)
+$logoTable = new LogoTable($pdo);
+
 $errors = [];
 
-// Si le formulaire est validé...
+// Variables utiles au formulaire de collection de logos
+$names = [];
+$isInvalidLogo = "";
+
+// Si le formulaire est posté...
 if(!empty($_POST)){
 
-    $post->setName($_POST['name']); // pour que le nom du post reste en cas d'erreurs
-    $post->setContent($_POST['content']); // pour que le contenu du post reste en cas d'erreurs
-    $post->setPicture($_FILES['picture']['name']); // pour que l'image du post reste en cas d'erreurs
+    // Pour que le nom, categories, contenu et l'image persistent en cas d'erreurs
+    $post->setName($_POST['name']); 
+    $post->setCategories($_POST['category']);
+    $post->setContent($_POST['content']); 
+    $post->setPicture($_FILES['picture']['name']); 
+
 
     // DONNEE DU FORMULAIRE ($_POST + $_FILES)
-    
     $data = array_merge($_POST, $_FILES);
-    /*
-    $data = [
-        "name" => "Ann la panthere",
-        "category" => [
-            '0' => 'Heroine',
-            '1' => 'Team'
-        ]
-        "content" => "qsdfqsdf",
-        "createdAt" => "2019-11-03 18:53:57",
-        "picture" => [
-            "name" => "ann2.jpg",
-            "type" => "image/jpeg",
-            "tmp_name" => "D:\Code\xampp\tmp\phpBEE6.tmp",
-            "error" => 0,
-            "size" => 192429
-        ]
-        "logo" => [
-            "name" => "logo.jpg",
-            "type" => "image/jpeg",
-            "tmp_name" => "D:\Code\xampp\tmp\phpBEE6.tmp",
-            "error" => 0,
-            "size" => 12421
-        ]
-        "logo1" => [
-            "name" => "Ai.jpg",
-            "type" => "image/jpeg",
-            "tmp_name" => "D:\Code\xampp\tmp\phpBEE6.tmp",
-            "error" => 0,
-            "size" => 156378
-        ]
-    ];
-    */
-    //dd($data);
-
-    /***************************************************************************************************************************************************/
-    // 1. Je veux récup les 'name' des chacun des logo (logo, logo1, logo2...) dans un tableau ['logo.jpg', 'ai.png', 'ia.jpg',...]
-    // 2. 
-
-    
-    // VERIFICATION DES DONNEES
+    // VERIFICATION DES DONNEES (hors logos)
     $validate = new PostValidator($data, $post->getId());
 
-    $errors = $validate->fieldEmpty(['name', 'content', 'category']);
+    $errors = $validate->fieldEmpty(['category', 'name', 'content']);
     $errors = $validate->fieldFileEmpty(['picture']);
     $errors = $validate->fieldLength(3, 150, ['name']);
     $errors = $validate->fieldLength(5, 2000, ['content']);
@@ -85,9 +53,25 @@ if(!empty($_POST)){
     $errors = $validate->fileExist(['picture']);
     $errors = $validate->fileSize(['picture']);
     $errors = $validate->fileExtension(['picture']);
+        
+    // VERIFICATION DES LOGOS (Collection)
+    if($_FILES['logo_0']['error'] !== 4){ // error 4 = vide
+        // Récup des logos (ON RETIRE "picture")
+        $dataLogo = $_FILES;
+        unset($dataLogo[array_search($_FILES['picture'], $dataLogo)]);
+        // Récup des noms (name des input file) des logos (logo_0, logo_1...)
+        $names = array_keys($dataLogo);
 
-    //dd($errors['category']);
-
+        // Boucle sur les nom des logos reçus (logo_0, logo_1...)
+        foreach($names as $name){
+            $errors = $validate->fileSize([$name]);
+            $errors = $validate->fileExtension([$name]);
+            if(isset($errors[$name])){
+                $isInvalidLogo = ' is-invalid';
+            }
+        }
+    }
+    
     // ON PARAM LE MESSAGE FLASH DE LA SESSION (s'il y a des erreurs)
     if(!empty($errors)){
         $session->setFlash('danger', "Il faut corriger vos erreurs !"); // On crée un message flash
@@ -104,12 +88,30 @@ if(!empty($_POST)){
         $post->setIsLiked('0');
 
         // Transfert de l'image dans le dossier
-        $successTransfer = FileTransfer::transfer($_FILES['picture'], 'assets/img/');
+        $successTransfer = FileTransfer::transfer($_FILES['picture'], 'assets/upload/img/');
         if($successTransfer){
             // Modif de l'image du post
             $post->setPicture($_FILES['picture']['name']);
         }
-        // ENREGISTREMENT DES DONNEES DANS LA BDD
+
+        // TRAITEMENT DES LOGOS (transfert fichiers, tranformation en objet Logo, et Insertion dans la bdd)
+        foreach($names as $name){
+            // Transfert des logos dans le dossier
+            $successTransfer = FileTransfer::transfer($dataLogo[$name], 'assets/upload/logo/');
+            if($successTransfer){
+                // Transformation des logos reçus en objets Logo
+                $logo = new Logo();
+                $logo->setName($dataLogo[$name]['name']);
+                $logo->setSize($dataLogo[$name]['size']);
+                // Ajout des logos dans le post
+                $post->addlogo($logo);
+                // Insertion des logos dans la bdd
+                $logoTable->insert($logo);
+            }
+            
+        }
+
+        // ENREGISTREMENT DU POST DANS LA BDD
         $postTable->insert($post);
         // Param du message flash de SESSION, puis redirection
         $session->setFlash('success', "L'article est crée !");

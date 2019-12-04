@@ -121,16 +121,15 @@ HTML;
     {
         // TODO : Ajouter l'attribut "required" au champs input
 
-        
         //$value = $this->getValue($name); // $value représente la valeur postée dans l'input du formulaire
-        //dd($value);
+        //dd($this->getErrorFeedback($name), $name, $this->errors);
         return <<<HTML
         <div id="divLogos" class="form-group col-md-4 pl-0">
             <label for="field{$name}">{$label}</label>
-                <input type="file" id="input_{$name}_0" class="{$this->getInputClass($name,'-file')}" name="{$name}" value="" aria-describedby="fileHelp{$name}">
+                <input type="file" id="input_{$name}_0" class="{$this->getInputClass($name,'-file')}" name="{$name}_0" value="" aria-describedby="fileHelp{$name}">
                 <small id="fileHelp{$name}" class="form-text text-muted">Logo qui permet d'illustrer la réalisation</small>
             <!-- Affichage de l'erreur dans une div class="invalid-feedback"-->
-            {$this->getErrorFeedback($name)} 
+            {$this->getErrorFeedback($name)}
             <button type="button" id="add_logo" class="btn btn-info btn-sm mt-2">Ajouter un logo</button>
         </div>
 HTML;

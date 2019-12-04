@@ -8,9 +8,9 @@ use App\Table\Exception\NotFoundException;
 // Gère les requêtes de la table "user" (table des utilisateurs)
 class UserTable extends Table{
 
-    // Ces 2 propriétés permettent de donner les infos nécessaires à la méthode find() de la class Table.php
-    protected $table = "user"; // Table de la bdd (qui permet de trouver un user, voir class Table.php)
-    protected $class = User::class; // Class qui défini le mode de recherche dans la bdd (voir class Table.php)
+    // Ces 2 propriétés permettent de donner les infos nécessaires à la class Table.php
+    protected $table = "user"; // Nom de la table dans la bdd
+    protected $class = User::class; // Class qui défini le mode de recherche dans la bdd
 
     /*
         METHODES DANS LE MODEL Table.php :

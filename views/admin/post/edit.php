@@ -24,6 +24,10 @@ $postTable = new PostTable($pdo);
 $post = $postTable->find($id); // Récup du post avec ses infos (avant modification) via l'id passé dans l'url
 $errors = []; // erreurs de formulaire
 
+// Variables utiles au formulaire de collection de logos
+$names = [];
+$isInvalidLogo = "";
+
 // Si le formulaire est validé...
 if(!empty($_POST)){
 

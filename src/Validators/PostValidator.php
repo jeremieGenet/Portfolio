@@ -9,6 +9,7 @@ use App\Table\PostTable;
 class PostValidator{
 
     private $data; // Données reçues pour validation ($_POST)
+    private $pdo;
     /*
     $data = [
         "name" => "qsdfqsdf",
@@ -26,14 +27,13 @@ class PostValidator{
     */
     private $errors = [];
     private $postTable;
-    private $pdo;
     private $postId;
 
     // Signature : $v = new PostValidator($_POST, $postTable, $post->getId());
     public function __construct(array $data, ?int $postId = null)
     {
+        $this->data = $data; // Données reçues en $_POST et $_FILES du formulaire
         $this->pdo = Connection::getPDO();
-        $this->data = $data; // Données reçues en $_POST du formulaire
         $this->postTable = new PostTable($this->pdo);
         $this->postId = $postId;
     }
@@ -41,6 +41,7 @@ class PostValidator{
     // Vérif si un champs est vide (en param un tableau avec le ou les noms des champs à vérifier) (NE FONCTIONNE PAS SUR LE CHAMPS PICTURE)
     public function fieldEmpty(array $fieldNames): array
     {    
+        //dd($this->data, $fieldNames);
         foreach($fieldNames as $fieldName){
             if(empty($this->data[$fieldName])){
                 //dd($this->data[$fieldName], $this->data);
@@ -52,16 +53,16 @@ class PostValidator{
         //RETOURNE ex :
         // array:[
         //     "name" => "Le champs name ne peut pas être vide !"?
-        //     "slug" => "Le champs slug ne peut pas être vide !"
+        //     "content" => "Le champs slug ne peut pas être vide !"
         // ]
     }
 
     // Vérif si un champs "image" est vide
     public function fieldFileEmpty(array $fieldNames): array
     {
-        //dd($fieldNames);
         foreach($fieldNames as $fieldName){
-            //dd($this->data[$fieldName]);
+            //dd($fieldName);
+            //dd($this->data[$fieldName]['name']);
             if($this->data[$fieldName]['name'] === ""){
                 //dd($this->data[$fieldName], $this->data);
                 $this->errors[$fieldName] = "Le champ '{$fieldName}' ne peut pas être vide !";
@@ -116,6 +117,7 @@ class PostValidator{
     // Vérif la taille des champs de type File (max 1Mo)
     public function fileSize(array $fieldNames): array
     {
+        //dd($fieldNames);
         foreach($fieldNames as $fieldName){
             //dd($this->data[$fieldName]); // 7 298 383
             if($this->data[$fieldName]['size'] > 1000000){
@@ -127,10 +129,26 @@ class PostValidator{
         return $this->errors; // Retourne un tableau d'erreurs OU un tableau vide
     }
 
+    public function fileSizeCollection(array $fieldNames): array
+    {
+        //dd($fieldNames);
+        foreach($fieldNames as $fieldName){
+            //dd($this->data[$fieldName]); // 7 298 383
+            if($this->data[$fieldName]['size'] > 1000000){
+                //dd('alors');
+                $this->errors[$fieldName] = "La taille du fichier '{$fieldName}' ne doit pas dépasser 1Mo !";
+            }       
+        }
+        //dd($this->errors);
+        return $this->errors; // Retourne un tableau d'erreurs OU un tableau vide
+    }
+
+
     // Vérifi l'extension du fichier image
     public function fileExtension(array $fieldNames):array
     {
 
+        //dd($this->data, $fieldNames);
         foreach($fieldNames as $fieldName){
             // On récup l'extension du fichier (à partir de son nom : "akechi.png")
             $ext = pathinfo($this->data[$fieldName]['name'], PATHINFO_EXTENSION);
@@ -141,6 +159,29 @@ class PostValidator{
             }
             // Si l'extension de fichier vaut 'jpg' ou 'png" alors
             if($ext !== 'jpg' && $ext !== 'png'){ 
+                $this->errors[$fieldName] = "L'extension du fichier '{$fieldName}' doit être aux formats 'jpg' ou 'png' uniquement ! ";
+            }
+            return $this->errors; // On retourne le tableau d'erreur vide (sans ajouter d'erreur)   
+        }
+
+    }
+
+    public function fileExtensionCollection(array $fieldNames):array
+    {
+        //dd($this->data, $fieldNames);
+        foreach($fieldNames as $fieldName){
+            //dd($fieldName);
+            // On récup l'extension du fichier (à partir de son nom : "akechi.png")
+            $ext = pathinfo($this->data[$fieldName]['name'], PATHINFO_EXTENSION);
+            //dd($this->data[$fieldName]['name'], $ext);
+            // Si l'extention est différente de 'null' (cas ou lors de la modif de l'article l'image n'est pas modifiée par une autre)
+            if($ext === ""){
+                //dd($ext);
+                return $this->errors; // Retourne un tableau d'erreurs vide
+            }
+            // Si l'extension de fichier vaut 'jpg' ou 'png" alors
+            if($ext !== 'jpg' && $ext !== 'png'){ 
+                //dd($ext);
                 $this->errors[$fieldName] = "L'extension du fichier '{$fieldName}' doit être aux formats 'jpg' ou 'png' uniquement ! ";
             }
             return $this->errors; // On retourne le tableau d'erreur vide (sans ajouter d'erreur)   

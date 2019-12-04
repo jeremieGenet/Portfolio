@@ -14,10 +14,10 @@ Auth::check();
 $session = new Session();
 
 $pdo = Connection::getPDO();
-$table = new PostTable($pdo);
-$post = $table->find($params['id']);
+$postTable = new PostTable($pdo);
+$post = $postTable->find($params['id']);
 //dd($params['id']);
-$table->delete($post, $params['id']);
+$postTable->delete($post, $params['id']);
 
 
 $session->setFlash('success', "l'article a été supprimé !");

@@ -9,9 +9,9 @@ use App\Models\Category;
 // Gère les requêtes de la table "Post" (table des articles)
 class PostTable extends Table{
 
-    // Ces 2 propriétés permettent de donner les infos nécessaires à la méthode find() de la class Table.php
-    protected $table = "post"; // Table de la bdd (qui permet de trouver un article, voir class Table.php)
-    protected $class = Post::class; // Class qui défini le mode de recherche dans la bdd (voir class Table.php)
+    // Ces 2 propriétés permettent de donner les infos nécessaires à la class Table.php
+    protected $table = "post"; // Nom de la table dans la bdd
+    protected $class = Post::class; // Class qui défini le mode de recherche dans la bdd
 
     /*
         METHODES DANS LE MODEL Table.php :
@@ -25,6 +25,9 @@ class PostTable extends Table{
     // Insère un post dans la bdd (et insére l'id et post et l'id de la catégorie du post dans la table post_category)
     public function insert(Post $post): void
     {
+
+        //dd($post->getLogoCollection());
+
         // INSERTION DU POST
         $query = $this->pdo->prepare("INSERT INTO {$this->table} SET 
             name = :name,
@@ -50,12 +53,10 @@ class PostTable extends Table{
             throw new \Exception("Impossible de créer l'article dans la table {$this->table}");
         }
         // On récup l'id du post créé (pour l'utiliser comme param de redirection)
-        $post->setId((int)$this->pdo->lastInsertId()); 
+        $post->setId((int)$this->pdo->lastInsertId());
 
-        //dd($post->getId(), $post->getCategories()[0]);
-        //dd($post->getCategories()[0]); // [0 => "1",...]
-
-        // BOUCLE POUR INCLURE LE OU LES ID DES CATEGORIES (reçu par les check-box du formulaire) (un post peu avoir plusieurs catégorie)
+        // INSERTION TABLE LIAISON (post_category)
+        // Boucle pour insérer le ou les catégories (reçu par les check-box du formulaire) (un post peu avoir plusieurs catégorie)
         foreach($post->getCategories()[0] as $id){
             // INSERER LA OU LES NOUVELLES CATEGORIES RECUE DANS LA TABLE post_category (besoin post_id et category_id)
             $query2 = $this->pdo->prepare("INSERT INTO post_category SET
@@ -71,6 +72,26 @@ class PostTable extends Table{
                 throw new \Exception("Impossible de modifier la table post_category ! ");
             }
         }
+
+        // INSERTION TABLE LIAISON (post_logo)
+        // Boucle pour insérer le ou les logo (collection)
+        foreach($post->getLogoCollection() as $logo){
+            //dd($logo, $logo->getId(), $post->getId());
+            $query2 = $this->pdo->prepare("INSERT INTO post_logo SET
+            post_id = :post_id,
+            logo_id = :logo_id
+            ");
+            $result2 = $query2->execute([
+                'post_id' => $post->getId(),
+                'logo_id' => $logo->getId()
+            ]);
+
+            if($result2 === false){
+                throw new \Exception("Impossible de modifier la table post_logo ! ");
+            }
+
+        }
+
         
     }
     
@@ -132,7 +153,7 @@ class PostTable extends Table{
         // SUPPRESSION de l'image dans le dossier de stockage (si il y en a une)
         if($post->getPicture()){
             //dd($post->getPicture());
-            unlink('assets/img/' . $post->getPicture());
+            unlink('assets/upload/img/' . $post->getPicture());
         }
         // Si la suppression n'a pas fonctionnée alors...
         if($result === false){

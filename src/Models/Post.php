@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use \DateTime;
+use App\Models\Logo;
 use App\Helpers\Text;
 
 // Représente la table des réalisations
@@ -17,7 +18,40 @@ class Post{
     private $isLiked;
 
     private $categories = []; // Tableau qui récup les catégories de la réalisation (LIAISON avec la table blog_post_category)
-    private $logo = [];  // liste de logos
+    private $logoCollection = [];  // Tableau d'objets de type Logo
+
+    public function __construct()
+    {
+        $this->logoCollection = [];
+    }
+
+    // Ajoute un logo à la collection de logo du post
+    public function addLogo(Logo $logo): bool
+    {
+        // Vérif si le logo est déjà dans la collection (si oui retourne false)
+        if(in_array($logo, $this->logoCollection, true)){
+            return false;
+        }
+
+        $this->logoCollection[] = $logo;
+        return true; // retourne true en cas de succès
+    }
+    // Supprime un logo de la collection de logo (retourne true si le logo est supprimé sinon false)
+    public function removeLogo(Logo $logo): bool
+    {
+        $key = array_search($logo, $this->logoCollection, true);
+        if($key === false){
+            return false;
+        }
+        // Suppression du logo de la collection (via $key)
+        unset($this->logoCollection[$key]);
+        return true; 
+    }
+    // Retourne la collection de logos
+    public function getLogoCollection()
+    {
+        return $this->logoCollection;
+    }
 
 
     public function getId(): ?int
@@ -143,17 +177,6 @@ class Post{
         $this->categories[] = $category;
         // On sauvegarde le post associé dans la classe Category.php (pas utile pour notre blog, mais permet dans Category.php de récup le post et ses catégories)
         //$category->setPost($this); 
-    }
-
-    // Récup la liste des logos
-    public function getLogo(): ?array
-    {
-        return $this->logo;
-    }
-    // Permet d'ajouter des logos
-    public function setLogo($logo): void
-    {
-        $this->logo[] = $logo;
     }
 
 

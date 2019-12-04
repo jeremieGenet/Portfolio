@@ -7,20 +7,21 @@ use PDO;
 // Gère les requêtes en relation avec la table "Category" (la table des catégories)
 class CategoryTable extends Table{
 
-    // Ces 2 propriétés permettent de donner les infos nécessaires à la méthode find() de la class Table.php
-    protected $table = "category"; // Table de la bdd (qui permet de trouver un article, voir class Table.php)
-    protected $class = Category::class; // Class qui défini le mode de recherche dans la bdd (voir class Table.php)
+    // Ces 2 propriétés permettent de donner les infos nécessaires à la class Table.php
+    protected $table = "category"; // Nom de la table dans la bdd
+    protected $class = Category::class; // Class qui défini le mode de recherche dans la bdd
 
 
     /**
-     * Rempli l'attribut "categories[]" (par jointure) des posts
+     * Rempli l'attribut "categories[]" (par jointure) des posts 
+     * Méthode utilisée dans PostTable.php (dans findPaginated() et findPaginatedForCategory ())
      *
      * @param App\Models\Post[] $posts
      * @return void
      */
     public function hydratePosts(array $posts): void
     {
-        // Récup dans le tableau "$postsbyId" des posts (mais on indexe les posts par leur propre id)
+        // Création d'un tableau de post indexés par leur propre id
         $postsById = [];
         foreach($posts as $post){
             $postsById[$post->getId()] = $post;
@@ -66,7 +67,7 @@ class CategoryTable extends Table{
         ]);
         // Si la création de l'article n'a pas fonctionnée alors...
         if($result === false){
-            throw new \Exception("Impossible de créer l'article dans la table {$this->table}");
+            throw new \Exception("Impossible de créer la catégorie dans la table {$this->table}");
         }
         //dd($post->getId()); // Retourne "null"
         $category->setId((int)$this->pdo->lastInsertId()); // On récup l'id de la catégorie créée (pour l'utiliser comme param de redirection)
