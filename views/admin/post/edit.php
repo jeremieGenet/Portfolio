@@ -2,8 +2,7 @@
 /* 
     PAGE DE MODIFICATION D'UN ARTILCE (post)
 */
-use App\FilesManager;
-use App\FileTransfer;
+use App\File\{FileTransfer, FilesManager};
 use App\HTML\Notification;
 use App\Validators\PostValidator;
 use App\{Auth, Session, Connection};
@@ -67,24 +66,17 @@ if(!empty($_POST)){
             $isInvalidLogo = ' is-invalid'; // Classe bootstrap du formulaire (pour afficher les erreurs de fichier sur la collection de logos)
         }
     }
-    
-    if(isset($_POST['delete-logo'])){
-        dd('ca marche?');
-    }
-    
+
 
     // ON PARAM LE MESSAGE FLASH DE LA SESSION (s'il y a des erreurs)
     if(!empty($errors)){
         $session->setFlash('danger', "Il faut corriger vos erreurs !"); // On crée un message flash
         $messages = $session->getFlashes('flash'); // On l'affiche
     }
-    /*************************************************************************************************************** */
-    // Une fois sur deux la modification des catégories ne fonctionne pas
 
-
+    // MODIFICATION DES DONNEES DE L'ARTICLE (par les données postées dans le formulaire)
     // S'il n'y a pas d'erreurs...
     if(empty($errors)){
-        // MODIFICATION DES DONNEES DE L'ARTICLE (par les données postées dans le formulaire)
         $post->setTitle(htmlentities($_POST['title']));
 
         // Gestion de la modification des catégories
@@ -101,18 +93,11 @@ if(!empty($_POST)){
             }
         }
 
-
-        //dd($logoCollection);
-
-        //dd($logoCollection['name'][0], $logoCollection['error']);
-
-        // Si la collection de logo n'est pas vide
-        if($logoCollection['error'][0] !== 4){
-            // ENREGISTREMENT DE LA COLLECTION DE LOGO DANS LA BDD
+        // ENREGISTREMENT DE LA COLLECTION DE LOGO DANS LA BDD
+        if($logoCollection['error'][0] !== 4){ // Si la collection de logo n'est pas vide
             // Récup du nb de logos dans la collection postée
             $countLogos = count($logoCollection['name']);
             for($i=0; $i<$countLogos; $i++){
-
                 // On vide la collection de logos
                 $post->removeCollectionLogo();
 
@@ -129,10 +114,6 @@ if(!empty($_POST)){
                 $logoTable->insert($logo);
             }
         }
-
-        
-
-
 
         $post->setContent($_POST['content']);  
         $post->setCreatedAt($_POST['createdAt']);
@@ -159,7 +140,7 @@ if(!empty($_POST)){
                 $post->setPicture($_FILES['picture']['name']);
             }
         }
-        // MODIFICATION DE LA BDD , puis message flash et redirection
+        // MODIFICATION DU POST DANS LA BDD , puis message flash et redirection
         $postTable = new PostTable($pdo);
         $postTable->update($post, $id); // $id = "$params['id']" qui est l'id du post à modifié (récup via les param altorouter)
         // Param du message flash de SESSION, puis redirection

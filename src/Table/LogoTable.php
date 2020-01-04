@@ -67,5 +67,11 @@ class LogoTable extends Table{
         }
     }
 
+    // Récup le 'name' (persona.jpg) d'un logo via son id (utile lors de la suppresion d'un logo, voir deleteLogo.php)
+    public function findNameById()
+    {
+        
+    }
+
 
 }

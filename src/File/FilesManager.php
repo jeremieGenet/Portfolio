@@ -1,5 +1,5 @@
 <?php
-namespace App;
+namespace App\File;
 
 
 // Permet de gérer une collection d'images (vérif et upload)

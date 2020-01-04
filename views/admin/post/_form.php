@@ -48,9 +48,9 @@ $form = new Form($post, $errors);
                 >
             </div>
             <!-- AFFICHAGE DES LOGOS -->
-            
             <div class="col-xs-12 col-md-9" style="width: 50px; height: 50px;">
                 <div class="row">
+                
                     <?php foreach($post->getLogoCollection() as $logo): ?>
                         <div class="col-xs-12 col-md-2">
                             <img src="../../assets/uploads/logo/<?= $logo->getName() ?>"
@@ -59,14 +59,19 @@ $form = new Form($post, $errors);
                                 name="<?= $logo->getNameLessExt() ?>"
                                 alt="<?= $logo->getNameLessExt() ?? "Pas d'illustration !" ?>"
                             >
-                            <button type="submit" name="delete-logo" class="btn btn-danger">X</button>
-                            
+                            <p>
+                                <!-- Lien/bouton de suppression de logo (en param d'url l'id du post et l'id du logo) -->
+                                <a 
+                                    href="<?= $router->url('admin_post_logo_delete', ['postId' => $post->getId(), 'logoId' => $logo->getId()]) ?>" 
+                                    class="btn btn-danger btn-xs" 
+                                    role="button">Remove
+                                </a>
+                            </p>
                         </div>
                     <?php endforeach; ?>
+
                 </div>
-                
-            </div> 
-            <?php //dd($post); ?>           
+            </div>         
         </div>
     <?php endif ?>
     

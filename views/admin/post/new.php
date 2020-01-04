@@ -2,8 +2,7 @@
 /* 
     PAGE DE CREATION D'UN ARTILCE (post)
 */
-use App\FilesManager;
-use App\FileTransfer;
+use App\File\{FileTransfer, FilesManager};
 use App\HTML\Notification;
 use App\Models\{Post, Logo, Category};
 use App\Validators\PostValidator;
@@ -49,7 +48,6 @@ if(!empty($_POST)){
     $errors = $validate->fileSize(['picture']);
     $errors = $validate->fileExtension(['picture']);
         
-   
     // Récup des logos postés
     $logoCollection = $_FILES['logo-collection'];
  
@@ -98,7 +96,7 @@ if(!empty($_POST)){
             // Modif de l'image du post
             $post->setPicture($_FILES['picture']['name']);
         }
-
+        
         // ENREGISTREMENT DU POST DANS LA BDD (avant la collection de logo pour récup l'id du post dans les objets logo)
         $postTable->insert($post);
 

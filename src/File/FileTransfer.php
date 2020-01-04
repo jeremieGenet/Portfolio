@@ -1,9 +1,9 @@
 <?php
-namespace App;
+namespace App\File;
 
 class FileTransfer{
 
-    // Transfert un fichier de type 'file' ($data) dans un dossier ($path) et retourne un booléan
+    // Upload un fichier de type 'file' ($data) dans un dossier ($path) et retourne un booléan
     public static function transfer(array $data, string $path): bool
     {
         // TRAITEMENT DU STOCKAGE DES IMAGES RECUES

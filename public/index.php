@@ -56,6 +56,8 @@ $router->match('/admin/post/[i:id]', 'admin/post/edit.php', 'admin_post'); // Di
 // suppression articles en "post" pour le rooting, afin que l'url ne fonctionne que si on post un formulaire (SECURITE POUR LES REDUCTION D'URL)
 $router->post('/admin/post/[i:id]/delete', 'admin/post/delete.php', 'admin_post_delete'); // Direction vers l'administration Supprimer d'un article 
 $router->match('/admin/post/new', 'admin/post/new.php', 'admin_post_new'); // Direction vers l'administration Création d'un articles (match pour y accéder en "get" et en "post")
+
+$router->match('/admin/post/[i:postId]/logo/[i:logoId]/delete', 'admin/post/deleteLogo.php', 'admin_post_logo_delete'); // Direction vers l'administration Supprimer d'un logo d'un article
 /*
     ADMINISTRATION
 Gestion des categories
