@@ -1,4 +1,5 @@
-/*!
+/*
+ * PERMET LA GESTION DU SCROLL LORS DE LA NAVIGATION DE LA PAGE D'ACCUEIL (entre autre)
  * jQuery.scrollTo
  * Copyright (c) 2007-2015 Ariel Flesler - aflesler ○ gmail • com | http://flesler.blogspot.com
  * Licensed under MIT

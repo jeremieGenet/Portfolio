@@ -1,6 +1,6 @@
 <?php
 /*
-    PAGE DE CONNEXION (Création de compte)
+    PAGE DE CONNEXION
         => Rédirection vers cette page si on est pas connecté (et que l'on veut accéder à une page qui posséde Auth::check())
 */
 
@@ -28,14 +28,15 @@ if(!empty($_POST)){
     if(!empty($_POST['email']) || !empty($_POST['password'])){
         $pdo = Connection::getPDO();
         $userTable = new UserTable($pdo);
+        // Récup de l'utilisateur ("$u") via son email
+        $u = $userTable->findByEmail($_POST['email']);
+
+        
 
         try{
-            // Récup de l'utilisateur ("$u") via son email
-            $u = $userTable->findByEmail($_POST['email']);/*****************************************************************************************************/
-
             // Si le password posté est le même que celui dans la bdd (retournera true si c'est le cas, sinon false)...
             if(password_verify($_POST['password'], $u->getPassword()) === true){
-                //dd($u);
+                //dd($_POST['password'], $u->getPassword());
                 //dd($u->getUsername());
                 // ON PARAM LA SESSION (1 Message flash + l'id et le nom de l'utilisateur stockés)
                 $session->setFlash('success', "Vous êtes maintenant connecté !");
@@ -44,9 +45,9 @@ if(!empty($_POST)){
 
                 header('Location: ' . $router->url('admin_home')); // Redirection
                 exit(); // On stop le script après la redirection
-
             }
-            $errors['password'] = 'Identifiant ou mot de passe incorrect'; // si le test vaut false alors erreur
+            
+            $errors['password'] = 'Identifiant ou mot de passe incorrect !!!'; // si le test vaut false alors erreur
 
         // Sinon c'est que le mot de passe posté est différent de celui de la bdd...
         }catch(NotFoundException $e){
@@ -79,7 +80,7 @@ $form = new Form($user, $errors);
     <form action="<?= $router->url('login') ?>" method="POST">
 
         <?= $form->inputEmail('email', 'Adresse email'); ?>
-        <?= $form->inputPassword('password', 'password'); ?>
+        <?= $form->inputPassword('password', 'Password'); ?>
 
         <button type="submit" class="btn btn-success">Se connecter</button>
     </form>

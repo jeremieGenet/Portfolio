@@ -15,6 +15,7 @@
 
         <!-- Style Bootstrap -->
         <link rel="stylesheet" href="../../assets/plugins/bootstrap/css/bootstrap_cyborg.css">
+        
     </head>
 
     <!-- class "h-100" pour height 100% (et permettre de mettre le footer tout en bas) -->
@@ -96,7 +97,7 @@
             <p>Page générée en <?= round(1000 * (microtime(true) - DEBUG_TIME)) ?>ms</p> 
         </footer>
 
-        <!-- Les 3 scripts suivants servent au fonctionnement de bootstrap -->
+        <!-- Les 2 scripts suivants servent au fonctionnement de bootstrap -->
         <script src="../../assets/plugins/jquery-3.3.1.min.js"></script>
         <script src="../../assets/plugins/bootstrap/js/bootstrap.js"></script>
 

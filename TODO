@@ -4,14 +4,13 @@ TODO :
     - Créer un affichage du profil de l'utilisateur
     - Créer un formulaire de modification du profil d'utilisateur, avec ajout d'avatars.
 
-    - Créer une table qui relie un utilisateur et un article (user_post)
     
     - Améliorer les messages (feedback) utilisateur avec disparition du message après quelques secondes (sleep()?)
     - Créer la page d'accueil de l'administration avec des stats sur les données du site (Nb d'articles, nb d'utilisateur)
-    - Ajouter la possibilité d'ajouter une galerie d'images à l'article
     - Ajouter la possiblité de liker un article si l'utilisateur est connécté
     - AMELIORATION: Le fichier "e.404.php" s'affiche mais n'est visible qu'en scrollant!
     
 
 git remote add origin https://github.com/jeremieGenet/Portfolio.git
-git push -u origin master&
+git push -u origin master
+

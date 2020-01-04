@@ -32,9 +32,7 @@ $link = $router->url('admin_posts');
         <thead>
             <th>Id</th>
             <th>Titre</th>
-            <th>
-                Aperçu
-            </th>
+            <th>Aperçu</th>
             <th>
                 <!-- BOUTON DE CREATION D'UN ARTICLE -->
                 <a href="<?= $router->url('admin_post_new') ?>" class="btn btn-dark">Créer un article</a>
@@ -42,6 +40,7 @@ $link = $router->url('admin_posts');
         </thead>
         <tbody>
             <?php foreach($posts as $post): ?>
+                <?php //dd($post); ?>
             <tr>
                  <td>
                     <!-- ID DES ARTICLE -->
@@ -50,12 +49,12 @@ $link = $router->url('admin_posts');
                 <td>
                     <a href="<?= $router->url('admin_post', ['id' => $post->getId()]) ?>">
                         <!-- NOM DES ARTICLE -->
-                        <?= htmlentities($post->getName()) ?>
+                        <?= htmlentities($post->getTitle()) ?>
                     </a>
                 </td>
                 <td>
-                    <!-- IMAGE (aperçu) -->
-                    <img src="../../assets/upload/img/<?= $post->getPicture() ?>"
+                    <!-- IMAGE (aperçu)  -->
+                    <img src="../../assets/uploads/img/<?= $post->getPicture() ?>"
                         class="rounded float-left img-thumbnail img-fluid"
                         style="width: 120px; height: 70px; background-color: rgba(100,0,255,0.2);"
                         name="<?= $post->getPicture() ?>"
@@ -75,7 +74,7 @@ $link = $router->url('admin_posts');
                     </form>
                 </td>
             </tr>
-            <?php endforeach ?>
+            <?php endforeach; ?>
         </tbody>
     </table>
 

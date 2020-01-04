@@ -2,18 +2,22 @@
 namespace App\Models;
 
 use \DateTime;
+use App\Connection;
 use App\Models\Logo;
 use App\Helpers\Text;
+use App\Models\Category;
+use App\Table\PostTable;
 
 // Représente la table des réalisations
 class Post{
 
     private $id;
     private $picture;
-    private $name;
+    private $title;
     private $slug;
     private $content;
     private $created_at;
+    private $author_id;
     private $likes;
     private $isLiked;
 
@@ -25,7 +29,27 @@ class Post{
         $this->logoCollection = [];
     }
 
-    // Ajoute un logo à la collection de logo du post
+    // Récup les catégorie et la collection de logos du post et retourne le post complet (via son id)
+    public function hydrate(int $id):Post
+    {
+        $pdo = Connection::getPDO();
+        $postTable = new PostTable($pdo);
+        $post = $postTable->find($id); // Récup du post avec ses infos (avant modification) via l'id passé dans l'url
+        // Hydratation du post (ajout de la collection de logo et des catégories)
+        $logos = $postTable->findLogoCollection($id);
+        // Boucle pour ajouter chaque logo de la collection au post
+        foreach($logos as $logo){
+            $post->addLogo($logo);
+        }
+        $categories = $postTable->findCategories($id);
+        foreach($categories as $category){
+            $post->setCategories($category);
+        }
+        return $post;
+    }
+
+
+    // Ajoute un logo (de type objet) à la collection de logo du post
     public function addLogo(Logo $logo): bool
     {
         // Vérif si le logo est déjà dans la collection (si oui retourne false)
@@ -34,6 +58,7 @@ class Post{
         }
 
         $this->logoCollection[] = $logo;
+        //$logo->setPost($this); /************************** Ne fonctionne pas encore ************** */
         return true; // retourne true en cas de succès
     }
     // Supprime un logo de la collection de logo (retourne true si le logo est supprimé sinon false)
@@ -46,6 +71,11 @@ class Post{
         // Suppression du logo de la collection (via $key)
         unset($this->logoCollection[$key]);
         return true; 
+    }
+    // Supprime la collection de logo
+    public function removeCollectionLogo()
+    {
+        $this->logoCollection = [];
     }
     // Retourne la collection de logos
     public function getLogoCollection()
@@ -77,13 +107,13 @@ class Post{
         return $this;
     }
     
-    public function getName(): ?string
+    public function getTitle(): ?string
     {
-        return $this->name;
+        return $this->title;
     }
-    public function setName(string $name): self // ": self" pour le typage du retour (retourne l'item en cours)
+    public function setTitle(string $title): self // ": self" pour le typage du retour (retourne l'item en cours)
     {
-        $this->name = $name;
+        $this->title = $title;
         return $this; // (retourne l'objet en cours)
     }
 
@@ -94,11 +124,11 @@ class Post{
     public function getSlugFormat(): ?string
     {
         // Formatage du nom du post en slug (titre-de-qualité)
-        $name = explode(' ', $this->name);
-        $slugName = implode("-", $name);
-        return strtolower($slugName);
+        $title = explode(' ', $this->title);
+        $slugTitle = implode("-", $title);
+        return strtolower($slugTitle);
     }
-    public function setSlug(string $slug): ?string /////////////////////// J'ai laisser une erreur pour test le return $this, et le return $this->slug //////////////////
+    public function setSlug(string $slug): ?string
     {
         $this->slug = $slug;
         return $this->slug;
@@ -115,7 +145,7 @@ class Post{
             return null;
         }
         // "nl2br" permet de respecter les sauts de lignes
-        return nl2br(htmlentities(Text::excerpt($this->content, 120)));
+        return nl2br(htmlentities(Text::excerpt((string)$this->content, 120))); /****************************************** (string) Corrige??? *************************/
     }
     // Retourne le contenu de l'article avec sauts de lignes et sécurisé par htmlentities()
     public function getFormatedContent(): ?string
@@ -145,6 +175,16 @@ class Post{
         return $this;
     }
 
+    public function getAuthor_id(): ?int
+    {
+        return $this->author_id;
+    }
+    public function setAuthor_id($author_id): self
+    {
+        $this->author_id = $author_id;
+        return $this;
+    }
+
     public function getLikes(): ?int
     {
         return $this->likes;
@@ -166,18 +206,36 @@ class Post{
     }
     
     // Récup la liste des catégories (d'un article, post)
-    public function getCategories(): array
+    public function getCategories()
     {
-        return $this->categories;
+        return $this->categories; 
     }
-
     // Permet d'ajouter des catégories
-    public function setCategories($category): void
+    public function setCategories(Category $category): void
     {
-        $this->categories[] = $category;
+        $this->categories[] = $category; // et non "$this->categories[]"
         // On sauvegarde le post associé dans la classe Category.php (pas utile pour notre blog, mais permet dans Category.php de récup le post et ses catégories)
         //$category->setPost($this); 
     }
+    public function removeCategories()
+    {
+        $this->categories = [];
+    }
+
+    /*
+    // Ajoute un logo (de type objet) à la collection de logo du post
+    public function addLogo(Logo $logo): bool
+    {
+        // Vérif si le logo est déjà dans la collection (si oui retourne false)
+        if(in_array($logo, $this->logoCollection, true)){
+            return false;
+        }
+
+        $this->logoCollection[] = $logo;
+        //$logo->setPost($this); 
+        return true; // retourne true en cas de succès
+    }
+    */
 
 
 

@@ -42,7 +42,7 @@ class Category{
         return $this;
     }
 
-    // Récup l'id d'un post qui appartient à la catégorie (utile pour remplir l'attribut 'catégories[]' de la classe Post.php)
+    // Récup l'id d'un post qui appartient à la catégorie (utile dans hydratePosts() de la classe CategoryTable() pour la pagination)
     public function getPostId(): ?int
     {
         return $this->post_id;

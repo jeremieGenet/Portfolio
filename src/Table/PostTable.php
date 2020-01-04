@@ -1,9 +1,10 @@
 <?php
 namespace App\Table;
 
+use App\Models\Logo;
 use App\Models\Post;
-use App\Helpers\PaginatedQuery;
 use App\Models\Category;
+use App\Helpers\PaginatedQuery;
 
 
 // Gère les requêtes de la table "Post" (table des articles)
@@ -26,25 +27,28 @@ class PostTable extends Table{
     public function insert(Post $post): void
     {
 
-        //dd($post->getLogoCollection());
+        //dd($post->getCategories());
+
 
         // INSERTION DU POST
         $query = $this->pdo->prepare("INSERT INTO {$this->table} SET 
-            name = :name,
+            title = :title,
             picture = :picture,
             slug = :slug, 
             content = :content, 
             created_at = :createdAt,
+            author_id = :author_id,
             likes = :likes,
             isLiked = :isLiked
         "); 
         // $result vaudra "true" ou "false" en fonction de la réussite ou non de la suppression de l'item
         $result = $query->execute([ 
-            'name' => $post->getName(),
+            'title' => $post->getTitle(),
             'picture' => $post->getPicture(),
             'slug' => $post->getSlugFormat(),
             'content' => $post->getContent(),
             'createdAt' => $post->getCreatedAt()->format('Y-m-d H:i:s'), // Formatage au format admit par MySQL
+            'author_id' => $post->getAuthor_id(),
             'likes' => $post->getLikes(),
             'isLiked' => $post->getIsLiked()
         ]);
@@ -54,10 +58,12 @@ class PostTable extends Table{
         }
         // On récup l'id du post créé (pour l'utiliser comme param de redirection)
         $post->setId((int)$this->pdo->lastInsertId());
-
+        
         // INSERTION TABLE LIAISON (post_category)
-        // Boucle pour insérer le ou les catégories (reçu par les check-box du formulaire) (un post peu avoir plusieurs catégorie)
-        foreach($post->getCategories()[0] as $id){
+        // Boucle pour insérer la ou les catégories (reçues par les check-box du formulaire) (un post peu avoir plusieurs catégories)
+        foreach($post->getCategories() as $category){ // ici "$category" est un objet Category (qui comporte id, slu, name, post_id, et post comme propriétés)
+            $category_id = (int)$category->getId(); // id des catégories postées (1 id si une catégorie postée, sinon plusieurs)
+            //dd($category_id);
             // INSERER LA OU LES NOUVELLES CATEGORIES RECUE DANS LA TABLE post_category (besoin post_id et category_id)
             $query2 = $this->pdo->prepare("INSERT INTO post_category SET
             post_id = :post_id,
@@ -65,50 +71,39 @@ class PostTable extends Table{
             ");
             $result2 = $query2->execute([
                 'post_id' => $post->getId(),
-                'category_id' => $id
+                'category_id' => $category_id
             ]);
 
             if($result2 === false){
                 throw new \Exception("Impossible de modifier la table post_category ! ");
             }
         }
-
-        // INSERTION TABLE LIAISON (post_logo)
-        // Boucle pour insérer le ou les logo (collection)
-        foreach($post->getLogoCollection() as $logo){
-            //dd($logo, $logo->getId(), $post->getId());
-            $query2 = $this->pdo->prepare("INSERT INTO post_logo SET
-            post_id = :post_id,
-            logo_id = :logo_id
-            ");
-            $result2 = $query2->execute([
-                'post_id' => $post->getId(),
-                'logo_id' => $logo->getId()
-            ]);
-
-            if($result2 === false){
-                throw new \Exception("Impossible de modifier la table post_logo ! ");
-            }
-
-        }
-
         
+
     }
     
     // Modifie un post dans la bdd (et modifie l'id de la catégorie dans la table post_category)
-    public function update(Post $post): void
+    public function update(Post $post, int $id): void
     {
         //dd($post, $post->getCategories());
         //dd($post->getPicture(), $post->getCategories());
         // UPDATE DU POST
-        $query = $this->pdo->prepare("UPDATE {$this->table} SET name = :name, picture = :picture, slug = :slug, content = :content, created_at = :createdAt WHERE id = :id");
+        $query = $this->pdo->prepare("UPDATE {$this->table} SET 
+            title = :title, 
+            picture = :picture, 
+            slug = :slug, 
+            content = :content, 
+            created_at = :createdAt,
+            author_id = :author_id
+        WHERE id = {$id}
+        ");
         $result = $query->execute([ // $result vaudra "true" ou "false" en fonction de la réussite ou non de la suppression de l'item
-            'id' => $post->getId(),
-            'name' => $post->getName(),
-            'picture' => $post->getPicture(), // COUILLE j'envoi un array au lieu d'une string avec : $post->getPicture()
-            'slug' => $post->getSlug(),
+            'title' => $post->getTitle(),
+            'picture' => $post->getPicture(),
+            'slug' => $post->getSlugFormat(),
             'content' => $post->getContent(),
-            'createdAt' => $post->getCreatedAt()->format('Y-m-d H:i:s') // Formatage au format admit par MySQL
+            'createdAt' => $post->getCreatedAt()->format('Y-m-d H:i:s'), // Formatage au format admit par MySQL
+            'author_id' => $post->getAuthor_id()
         ]); 
         //dd($result);
         // Si la Modification n'a pas fonctionnée alors...
@@ -119,13 +114,29 @@ class PostTable extends Table{
         // Si la propriété 'categories' n'est pas vide... (on fait l'update de la table de liaison post_category)
         if($post->getCategories() !== []){
 
+            //dd($post->getCategories());
+            /*
+            array:2 [▼
+                0 => Category {#26 ▼
+                    -id: "1"
+                    -slug: "slug-php"
+                    -name: "PHP"
+                    -post_id: null
+                    -post: null
+                }
+                1 => Category {#25 ▶}
+            ]
+            */
+
+            
             // SUPPRESSION PUIS INSERTION DE LA OU LES CATEGORIES DANS LA BDD (liaison post_category)
             $query = $this->pdo->prepare("DELETE FROM post_category WHERE post_id = ?");
             // $result vaudra "true" ou "false" en fonction de la réussite ou non de la suppression de l'item (permet de jetter une exception plus bas)
             $result = $query->execute([$post->getId()]);
-
+            
             // BOUCLE POUR INCLURE LE OU LES ID DES CATEGORIES (reçu par les check-box du formulaire) (un post peu avoir plusieurs catégorie)
-            foreach($post->getCategories()[0] as $id){
+            foreach($post->getCategories() as $category){ // ici "$category" est un objet Category (qui comporte id, slu, name, post_id, et post comme propriétés)
+
                 // INSERER LA OU LES NOUVELLES CATEGORIES RECUE DANS LA TABLE post_category (besoin post_id et category_id)
                 $query2 = $this->pdo->prepare("INSERT INTO post_category SET
                 post_id = :post_id,
@@ -133,42 +144,71 @@ class PostTable extends Table{
                 ");
                 $result2 = $query2->execute([
                     'post_id' => $post->getId(),
-                    'category_id' => $id
+                    'category_id' => $category->getId()
                 ]);
                 if($result2 === false){
                     throw new \Exception("Impossible de modifier la table post_category ! ");
                 }
+
             }
 
+                /*
+                // Ne fonctionne pas
+                // UPDATE DE LA OU LES NOUVELLES CATEGORIES RECUES DANS LA TABLE post_category (besoin post_id et category_id)
+                $query = $this->pdo->prepare("UPDATE post_category SET
+                    post_id = :post_id,
+                    category_id = :category_id
+                WHERE post_id = {$id} 
+                ");
+                $result = $query->execute([
+                    'post_id' => $post->getId(),
+                    'category_id' => $category->getId() // 1
+                ]);
+                if($result === false){
+                    throw new \Exception("Impossible de modifier la table post_category ! ");
+                }
+                */
+                
         }
         
+
     }
 
     // Supprime un post en fonction de son id (renvoie une exception si cela n'a pas fonctionné)
     public function delete(Post $post, int $id): void
     {
-        $query = $this->pdo->prepare("DELETE FROM {$this->table} WHERE id = ?");
-        // $result vaudra "true" ou "false" en fonction de la réussite ou non de la suppression de l'item (permet de jetter une exception plus bas)
-        $result = $query->execute([$id]); 
+        
         // SUPPRESSION de l'image dans le dossier de stockage (si il y en a une)
         if($post->getPicture()){
             //dd($post->getPicture());
-            unlink('assets/upload/img/' . $post->getPicture());
+            // Si le fichier existe alors on supprime le fichier du dossier
+            if(file_exists('assets/uploads/img/' . $post->getPicture())){
+                unlink('assets/uploads/img/' . $post->getPicture());
+            }
         }
+
+        // SUPPRESSION DES LOGOS DU DOSSIER
+        // Récup des logos sous forme d'objet
+        $logos = $this->findLogoCollection($id);
+        //dd($logos);
+        // Suppression des logos dans le dossier
+        foreach($logos as $logo){
+            // Si le fichier existe alors on supprime le fichier du dossier
+            if(file_exists('assets/uploads/logo/' . $logo->getName())){
+                unlink('assets/uploads/logo/' . $logo->getName());
+            }
+        }
+        
+
+        // SUPPRESSION DU POST
+        $query = $this->pdo->prepare("DELETE FROM {$this->table} WHERE id = ?");
+        // $result vaudra "true" ou "false" en fonction de la réussite ou non de la suppression de l'item (permet de jetter une exception plus bas)
+        $result = $query->execute([$id]);
         // Si la suppression n'a pas fonctionnée alors...
         if($result === false){
             throw new \Exception("Impossible de supprimer l'enregistrement $id dans la table {$this->table}");
         }
 
-
-        // Suppression de la JOINTURE dans post_category
-        $query2 = $this->pdo->prepare("DELETE FROM post_category WHERE post_id = ?");
-        $result2 = $query2->execute([$id]);
-        if($result2 === false){
-        throw new \Exception("Impossible de supprimer l'enregistrement $id dans la table 'post_category' ! ");
-        }
-        
-        
     }
 
     // Récup les résultats paginés des posts (utilisé pour l'affichage de l'ensemble des articles dans post/index.php)
@@ -237,5 +277,26 @@ class PostTable extends Table{
         
         return $query->fetchAll();
     }
+
+    // Récup les catégories via leurs noms (utile lors de la création d'un post pour récup les catégories postées dans le formulaire "new.php")
+    public function findCategoriesById(array $ids)
+    {
+        foreach($ids as $id){
+            $query = $this->pdo->query("SELECT * FROM Category WHERE id = {$id}");
+            $query->setFetchMode(\PDO::FETCH_CLASS, Category::class); // On change le mode de recherche (Fetch) et on signifie que l'on va utiliser par classe
+            $categories[] = $query->fetch();
+        }
+        return $categories;
+    }
+
+    // Récup la collection de logos appartenant à un post (via son id)
+    public function findLogoCollection(int $id): array
+    {
+        $query = $this->pdo->query("SELECT * FROM Logo WHERE post_id = {$id}");
+        $query->setFetchMode(\PDO::FETCH_CLASS, Logo::class); // On change le mode de recherche (Fetch) et on signifie que l'on va utiliser par classe
+        return $query->fetchAll();
+    }
+
+    
 
 }

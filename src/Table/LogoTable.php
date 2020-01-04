@@ -2,6 +2,7 @@
 namespace App\Table;
 
 use App\Models\Logo;
+use App\Models\Post;
 use PDO;
 
 // Gère les requêtes en relation avec la table "logo" (la table des logo)
@@ -15,21 +16,24 @@ class LogoTable extends Table{
     // Insère une catégorie dans la bdd
     public function insert(Logo $logo)
     {
+
         $query = $this->pdo->prepare("INSERT INTO {$this->table} SET 
-        name = :name,
-        size = :size
+            name = :name,
+            size = :size,
+            post_id = :post_id
         "); 
         // $result vaudra "true" ou "false" en fonction de la réussite ou non de la suppression de l'item
         $result = $query->execute([ 
             'name' => $logo->getName(),
-            'size' => $logo->getSize()
+            'size' => $logo->getSize(),
+            'post_id' => $logo->getPost_id()
         ]);
         // Si la création de l'article n'a pas fonctionnée alors...
         if($result === false){
             throw new \Exception("Impossible d'insérer le logo dans la table {$this->table}");
         }
         //dd($post->getId()); // Retourne "null"
-        $logo->setId((int)$this->pdo->lastInsertId()); // On récup l'id de la catégorie créée (pour l'utiliser comme param de redirection)
+        $logo->setId((int)$this->pdo->lastInsertId()); // On récup l'id du logo nouvellement créé (pour l'utiliser comme param de redirection)
         
     }
 
@@ -40,8 +44,8 @@ class LogoTable extends Table{
         $result = $query->execute([ // $result vaudra "true" ou "false" en fonction de la réussite ou non de la suppression de l'item
             'id' => $logo->getId(),
             'name' => $logo->getName(),
-            'slug' => $logo->getSlug(),
-            
+            'size' => $logo->getSize(),
+            'post_id' => $logo->getPost_id()
         ]); 
         // Si la Modification n'a pas fonctionnée alors...
         if($result === false){

@@ -129,20 +129,6 @@ class PostValidator{
         return $this->errors; // Retourne un tableau d'erreurs OU un tableau vide
     }
 
-    public function fileSizeCollection(array $fieldNames): array
-    {
-        //dd($fieldNames);
-        foreach($fieldNames as $fieldName){
-            //dd($this->data[$fieldName]); // 7 298 383
-            if($this->data[$fieldName]['size'] > 1000000){
-                //dd('alors');
-                $this->errors[$fieldName] = "La taille du fichier '{$fieldName}' ne doit pas dépasser 1Mo !";
-            }       
-        }
-        //dd($this->errors);
-        return $this->errors; // Retourne un tableau d'erreurs OU un tableau vide
-    }
-
 
     // Vérifi l'extension du fichier image
     public function fileExtension(array $fieldNames):array
@@ -150,14 +136,36 @@ class PostValidator{
 
         //dd($this->data, $fieldNames);
         foreach($fieldNames as $fieldName){
+            // Si le nom du champs est sous forme de tableau (c'est le cas des logos, la collection)
+            if(is_array($fieldName)){
+
+                foreach($fieldName as $i){
+                    $ext = pathinfo($this->data[$fieldName]['name'][$i], PATHINFO_EXTENSION);
+
+                    // Si l'extention est différente de 'null' (cas ou lors de la modif de l'article l'image n'est pas modifiée par une autre)
+                    if($ext === ""){
+                        return $this->errors; // Retourne un tableau d'erreurs vide
+                    }
+                    // Si l'extension de fichier est différent de 'jpg' ou 'png" alors
+                    if($ext !== 'jpg' && $ext !== 'png'){ 
+                        $this->errors[$fieldName][$i] = "L'extension du fichier '{$fieldName[$i]}' doit être aux formats 'jpg' ou 'png' uniquement ! ";
+                    }
+                    return $this->errors; // On retourne le tableau d'erreur vide (sans ajouter d'erreur)
+                }
+
+            }
+
+
+
             // On récup l'extension du fichier (à partir de son nom : "akechi.png")
+            //dd($this->data[$fieldName]['name']); // "akechi.png"
             $ext = pathinfo($this->data[$fieldName]['name'], PATHINFO_EXTENSION);
 
             // Si l'extention est différente de 'null' (cas ou lors de la modif de l'article l'image n'est pas modifiée par une autre)
             if($ext === ""){
                 return $this->errors; // Retourne un tableau d'erreurs vide
             }
-            // Si l'extension de fichier vaut 'jpg' ou 'png" alors
+            // Si l'extension de fichier est différent de 'jpg' ou 'png" alors
             if($ext !== 'jpg' && $ext !== 'png'){ 
                 $this->errors[$fieldName] = "L'extension du fichier '{$fieldName}' doit être aux formats 'jpg' ou 'png' uniquement ! ";
             }
@@ -166,27 +174,5 @@ class PostValidator{
 
     }
 
-    public function fileExtensionCollection(array $fieldNames):array
-    {
-        //dd($this->data, $fieldNames);
-        foreach($fieldNames as $fieldName){
-            //dd($fieldName);
-            // On récup l'extension du fichier (à partir de son nom : "akechi.png")
-            $ext = pathinfo($this->data[$fieldName]['name'], PATHINFO_EXTENSION);
-            //dd($this->data[$fieldName]['name'], $ext);
-            // Si l'extention est différente de 'null' (cas ou lors de la modif de l'article l'image n'est pas modifiée par une autre)
-            if($ext === ""){
-                //dd($ext);
-                return $this->errors; // Retourne un tableau d'erreurs vide
-            }
-            // Si l'extension de fichier vaut 'jpg' ou 'png" alors
-            if($ext !== 'jpg' && $ext !== 'png'){ 
-                //dd($ext);
-                $this->errors[$fieldName] = "L'extension du fichier '{$fieldName}' doit être aux formats 'jpg' ou 'png' uniquement ! ";
-            }
-            return $this->errors; // On retourne le tableau d'erreur vide (sans ajouter d'erreur)   
-        }
-
-    }
  
 }

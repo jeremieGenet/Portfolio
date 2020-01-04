@@ -1,6 +1,6 @@
 <?php
 /*
-    PAGE DE SUPPRESSION D'UN ARTICLE (POST), TRAITEMENT UNIQUEMENT
+    PAGE DE SUPPRESSION D'UN POST (traitement uniquement)
 */
 
 use App\Auth;

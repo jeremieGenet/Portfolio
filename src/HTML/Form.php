@@ -85,15 +85,13 @@ HTML;
 HTML;
     }
 
-    // INPUTS CHECK-BOX (pour les catégories) le résultat d'une box retourne à la validation du formulaire : "name" => "value"
+    // INPUTS CHECK-BOX (pour les catégories) Retournera les id des catégories à la validation du formulaire: [0 => "1", 1 => "2", ...] 
     public function inputCheckBox($id, $category, $name){
         return <<<HTML
-            
             <input class="{$this->getCheckBoxClass($name)}"  type="checkbox" name='category[]' value="{$id}" id="{$id} {$category}">
             <label class="form-check-label mr-5" for="{$id} {$category}">
                 {$category}
             </label>
-            
 HTML;
     }
         
@@ -112,25 +110,6 @@ HTML;
             <small id="fileHelp{$name}" class="form-text text-muted">Choisissez une belle image pour représenter votre article.</small>
             <!-- Affichage de l'erreur dans une div class="invalid-feedback"-->
             {$this->getErrorFeedback($name)} 
-        </div>
-HTML;
-    }
-
-    // Input pour un champ de type file (images)
-    public function inputLogos(string $name, string $label)
-    {
-        // TODO : Ajouter l'attribut "required" au champs input
-
-        //$value = $this->getValue($name); // $value représente la valeur postée dans l'input du formulaire
-        //dd($this->getErrorFeedback($name), $name, $this->errors);
-        return <<<HTML
-        <div id="divLogos" class="form-group col-md-4 pl-0">
-            <label for="field{$name}">{$label}</label>
-                <input type="file" id="input_{$name}_0" class="{$this->getInputClass($name,'-file')}" name="{$name}_0" value="" aria-describedby="fileHelp{$name}">
-                <small id="fileHelp{$name}" class="form-text text-muted">Logo qui permet d'illustrer la réalisation</small>
-            <!-- Affichage de l'erreur dans une div class="invalid-feedback"-->
-            {$this->getErrorFeedback($name)}
-            <button type="button" id="add_logo" class="btn btn-info btn-sm mt-2">Ajouter un logo</button>
         </div>
 HTML;
     }

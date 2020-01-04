@@ -4,14 +4,14 @@
         <!-- Lien vers l'article sélectionné -->
         <a href="<?=  $router->url('achievement', ['slug' => $post->getSlug(), 'id' => $post->getId()]) ?>">
             <!-- IMAGE -->
-            <img src="<?= '../../assets/img/'.$post->getPicture() ?>" class="mr-3 img-fluid post-thumb d-none d-md-flex" alt="Image">
+            <img src="<?= '../../assets/upload/img/'.$post->getPicture() ?>" class="mr-3 img-fluid post-thumb d-none d-md-flex" alt="Image">
         </a>
         <div class="media-body">
             
             <h3 class="title mb-1">
                 <a href="<?= $router->url('achievement', ['slug' => $post->getSlug(), 'id' => $post->getId()]) ?>">
                     <!-- NOM -->
-                    <?= $post->getName() ?>
+                    <?= $post->getTitle() ?>
                 </a>
             </h3>
 
