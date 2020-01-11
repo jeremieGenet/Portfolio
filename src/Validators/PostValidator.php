@@ -2,6 +2,8 @@
 namespace App\Validators;
 
 use App\Connection;
+use App\FilesManager;
+use App\Table\LogoTable;
 use App\Table\PostTable;
 
 
@@ -35,6 +37,7 @@ class PostValidator{
         $this->data = $data; // Données reçues en $_POST et $_FILES du formulaire
         $this->pdo = Connection::getPDO();
         $this->postTable = new PostTable($this->pdo);
+        $this->logoTable = new LogoTable($this->pdo);
         $this->postId = $postId;
     }
 
@@ -99,80 +102,9 @@ class PostValidator{
         return $this->errors; // Retourne un tableau d'erreurs OU un tableau vide
     }
 
-    // Vérif si un champ FILE existe déjà dans la bdd
-    public function fileExist(array $fieldNames): array
-    {
-        foreach($fieldNames as $fieldName){
-            // Méthode exist() permet de vérif dans la bdd si un champ est déja présent (voir dans Table.php)
-            // exists() param 1 = Nom du champ, param2 = valeur du nom du champ, param3 = id du post actuel (en traitement)
-            //dd($fieldName, $this->data[$fieldName]['name']);
-            if($this->postTable->exists($fieldName, $this->data[$fieldName]['name'], $this->postId)){
-                $this->errors[$fieldName] = "Ce fichier '{$fieldName}' existe déjà !";
-            }       
-        }   
-        //dd($this->errors);
-        return $this->errors; // Retourne un tableau d'erreurs OU un tableau vide
-    }
-
-    // Vérif la taille des champs de type File (max 1Mo)
-    public function fileSize(array $fieldNames): array
-    {
-        //dd($fieldNames);
-        foreach($fieldNames as $fieldName){
-            //dd($this->data[$fieldName]); // 7 298 383
-            if($this->data[$fieldName]['size'] > 1000000){
-                //dd('alors');
-                $this->errors[$fieldName] = "La taille du fichier '{$fieldName}' ne doit pas dépasser 1Mo !";
-            }       
-        }
-        //dd($this->errors);
-        return $this->errors; // Retourne un tableau d'erreurs OU un tableau vide
-    }
 
 
-    // Vérifi l'extension du fichier image
-    public function fileExtension(array $fieldNames):array
-    {
-
-        //dd($this->data, $fieldNames);
-        foreach($fieldNames as $fieldName){
-            // Si le nom du champs est sous forme de tableau (c'est le cas des logos, la collection)
-            if(is_array($fieldName)){
-
-                foreach($fieldName as $i){
-                    $ext = pathinfo($this->data[$fieldName]['name'][$i], PATHINFO_EXTENSION);
-
-                    // Si l'extention est différente de 'null' (cas ou lors de la modif de l'article l'image n'est pas modifiée par une autre)
-                    if($ext === ""){
-                        return $this->errors; // Retourne un tableau d'erreurs vide
-                    }
-                    // Si l'extension de fichier est différent de 'jpg' ou 'png" alors
-                    if($ext !== 'jpg' && $ext !== 'png'){ 
-                        $this->errors[$fieldName][$i] = "L'extension du fichier '{$fieldName[$i]}' doit être aux formats 'jpg' ou 'png' uniquement ! ";
-                    }
-                    return $this->errors; // On retourne le tableau d'erreur vide (sans ajouter d'erreur)
-                }
-
-            }
-
-
-
-            // On récup l'extension du fichier (à partir de son nom : "akechi.png")
-            //dd($this->data[$fieldName]['name']); // "akechi.png"
-            $ext = pathinfo($this->data[$fieldName]['name'], PATHINFO_EXTENSION);
-
-            // Si l'extention est différente de 'null' (cas ou lors de la modif de l'article l'image n'est pas modifiée par une autre)
-            if($ext === ""){
-                return $this->errors; // Retourne un tableau d'erreurs vide
-            }
-            // Si l'extension de fichier est différent de 'jpg' ou 'png" alors
-            if($ext !== 'jpg' && $ext !== 'png'){ 
-                $this->errors[$fieldName] = "L'extension du fichier '{$fieldName}' doit être aux formats 'jpg' ou 'png' uniquement ! ";
-            }
-            return $this->errors; // On retourne le tableau d'erreur vide (sans ajouter d'erreur)   
-        }
-
-    }
+    
 
  
 }

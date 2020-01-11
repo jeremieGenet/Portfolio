@@ -2,7 +2,7 @@
 /* 
     PAGE DE MODIFICATION D'UN ARTILCE (post)
 */
-use App\File\{FileTransfer, FilesManager};
+use App\FilesManager;
 use App\HTML\Notification;
 use App\Validators\PostValidator;
 use App\{Auth, Session, Connection};
@@ -15,7 +15,11 @@ $session = new Session();
 $messages = $session->getFlashes('flash');
 $id = $params['id']; // id du post en cours de modification
 
-$errors = []; // erreurs de formulaire
+// Tableaux erreurs de formulaire ($errors regroupera les 2 autres après traitement)
+$errors = []; 
+$errorsPost = [];
+$errorsFile = [];
+
 // Variable utile au formulaire de collection de logos (ajoutera ou non la classe ' is-invalid' de bootstrap)
 $isInvalidLogo = "";
 
@@ -30,43 +34,37 @@ $categories = $category->findAll();
 
 // Si le formulaire est validé...
 if(!empty($_POST)){
-
     // Pour que le nom, et contenu persistent en cas d'erreurs formulaire
     $post->setTitle($_POST['title']); 
     $post->setContent($_POST['content']); 
-    
-    // DONNEE DU FORMULAIRE ($_POST + $_FILES)
-    $data = array_merge($_POST, $_FILES);
-    //dd($data);
 
     // VERIFICATION DES DONNEES
-    $validate = new PostValidator($data, $post->getId());
+    $validate = new PostValidator($_POST, $post->getId());
 
-    $errors = $validate->fieldEmpty(['title', 'content']);
-    $errors = $validate->fieldLength(3, 50, ['title']);
-    $errors = $validate->fieldLength(5, 2000, ['content']);
-    $errors = $validate->fieldExist(['title']);
-    $errors = $validate->fileExist(['picture']);
-    $errors = $validate->fileSize(['picture']);
-    $errors = $validate->fileExtension(['picture']);
+    $errorsPost = $validate->fieldEmpty(['title', 'content']);
+    $errorsPost = $validate->fieldLength(3, 50, ['title']);
+    $errorsPost = $validate->fieldLength(5, 2000, ['content']);
+    $errorsPost = $validate->fieldExist(['title']);
 
-    
-    // Récup des logos postés
-    $logoCollection = $_FILES['logo-collection'];
-    //dd($logoCollection);
- 
-    // VERIF ET UPLOAD DES LOGOS
-    // Si la collection de logo n'est pas vide ...
-    if($logoCollection['error'][0] !== 4){ // (error 4 = vide)
-        $validTransfertCollection = new FilesManager($logoCollection);
-        $validTransfertCollection->filesValidTransfer('assets/uploads/logo');
-        // Si la collection de logos (après traitement via FilesManager) ne retourne pas true (c'est qu'il y a une erreur) alors...
-        if($validTransfertCollection->filesValidTransfer('assets/uploads/logo') !== true){
-            $errors = $validTransfertCollection->getErrors(); // On récup les erreurs s'il y en a (voir class FileManager())
-            $isInvalidLogo = ' is-invalid'; // Classe bootstrap du formulaire (pour afficher les erreurs de fichier sur la collection de logos)
+    // VERIFICATION DE L'IMAGE PRINCIPALE ET DE LA COLLECTION DE LOGOS ($_FILES)
+    $filesManager = new FilesManager($_FILES);
+    // Si un image principale est postée... (s'il y en a une, cette condition rend l'ajout de l'image principale optionnel)
+    if($_FILES['picture']['error'] !== 4){ // (error 4 = vide)
+        // Vérif de l'image principale ('valid()' retourne un tableau d'erreur ou un tableau vide)
+        $errorsFile = $filesManager->valid('picture'); 
+    }
+    // Si une collection de logo est postée... (s'il y en a, cette condition rend l'ajout de logos optionnel)
+    if($_FILES['logo-collection']['error'][0] !== 4){ // (error 4 = vide)
+        // Vérif collection de logos ('valid()' retourne un tableau d'erreur ou un tableau vide)
+        $errorsFile = $filesManager->valid('logo-collection'); 
+        // Condition si il y a une erreur lors de l'édition des logos (on donne la classe bootstrap " is-invalid")
+        if($errorsFile !== []){
+            $isInvalidLogo = ' is-invalid';
         }
     }
 
+    // On regroupe dans un même tableau les erreurs de post ($_POST, hors $_FILES) et les erreur de fichier ($_FILES)
+    $errors = array_merge($errorsPost, $errorsFile);
 
     // ON PARAM LE MESSAGE FLASH DE LA SESSION (s'il y a des erreurs)
     if(!empty($errors)){
@@ -94,7 +92,14 @@ if(!empty($_POST)){
         }
 
         // ENREGISTREMENT DE LA COLLECTION DE LOGO DANS LA BDD
+        // Récup des logos postés
+        $logoCollection = $_FILES['logo-collection'];
+
         if($logoCollection['error'][0] !== 4){ // Si la collection de logo n'est pas vide
+            $pathLogo = 'assets/uploads/logo/';
+            // // Transfert (et rename si l'un d'entre eux existe déjà) de la collection de logo dans le dossier dédié (retourne les noms des fichiers) (et rename si l'un d'entre eux existe déjà) de la collection de logo dans le dossier dédié (retourne les noms des fichiers)
+            $transferLogos = $filesManager->transfer('logo-collection', $pathLogo);
+
             // Récup du nb de logos dans la collection postée
             $countLogos = count($logoCollection['name']);
             for($i=0; $i<$countLogos; $i++){
@@ -118,31 +123,24 @@ if(!empty($_POST)){
         $post->setContent($_POST['content']);  
         $post->setCreatedAt($_POST['createdAt']);
 
-        //dd($post->getPicture(), $_FILES['picture']['name']);
 
         // TRAITEMENT DE L'IMAGE PRINCIPALE (upload, et suppression de l'ancienne puis enregistrement dans le post)
         // Si l'image actuelle du post est différente de l'image postée et que l'image postée est différente de vide ("") alors...
         if(($post->getPicture() !== $_FILES['picture']['name']) && ($_FILES['picture']['name']) !== ""){
             // Dossier dans lequel on dirige l'image postée
-            $pathImages = 'assets/uploads/img/'; 
-            // Transfert de l'image dans le dossier
-            $successTransfer = FileTransfer::transfer($_FILES['picture'], $pathImages);
-            // On supprime le fichier (ex : 'assets/img/haru.jpg') du post actuel s'il existe 
-            if(file_exists($pathImages . $post->getPicture())){
-                unlink($pathImages . $post->getPicture());
-            }else{
-                $session->setFlash('warning', "Le fichier n'a pas été supprimé !!!"); // On crée un message flash
-                $messages = $session->getFlashes('flash'); // On l'affiche
-            }
+            $pathImage = 'assets/uploads/img/'; 
+            // Upload (et rename si elle existe déjà) de l'image principale dans le dossier (retourne le nom du fichier)
+            $fileName = $filesManager->transfer('picture', $pathImage, $post->getId());
+            // On supprime le fichier (ex : 'assets/img/haru.jpg') du post actuel s'il existe (puisqu'on vient d'en ajouter de nouveaux)
+            $filesManager->remove($post->getPicture(), $pathImage);
             
-            if($successTransfer){
-                // Modif de l'image du post
-                $post->setPicture($_FILES['picture']['name']);
-            }
+            // Modif de l'image du post
+            $post->setPicture($fileName);
+            
         }
         // MODIFICATION DU POST DANS LA BDD , puis message flash et redirection
         $postTable = new PostTable($pdo);
-        $postTable->update($post, $id); // $id = "$params['id']" qui est l'id du post à modifié (récup via les param altorouter)
+        $postTable->update($post, $id); // $id = "$params['id']" qui est l'id du post à modifier (récup via les param altorouter)
         // Param du message flash de SESSION, puis redirection
         $session->setFlash('success', "Modification réussie !!!!");
         header('Location: ' . $router->url('admin_posts', ['id' => $post->getId()]));
@@ -150,7 +148,6 @@ if(!empty($_POST)){
     }
     
 }
-
 ?>
 
 <!-- EDITION D'UN ARTICLE (post)-->
@@ -161,7 +158,7 @@ if(!empty($_POST)){
     <?= Notification::toast($messages) ?>
 
     <!-- AFFICHAGE DES CATEGORIES -->
-    <hr class="bg-light my-4">
+    <hr class="bg-primary my-4">
     <h5 class="text-center mb-3">Catégorie(s)</h5>
     <?php //dd($post->getCategories()); ?>
     
@@ -170,7 +167,7 @@ if(!empty($_POST)){
             <p class="text-center"> <?= $cat->getName() ?></p>
         <?php endforeach; ?>
     
-    <hr class="bg-light my-4">
+        <hr class="bg-primary my-4">
 
     <!-- FORMULAIRE D'EDITION DE L'ARTICLE (via notre classe Form.php) -->
     <?php require ('_form.php') ?>

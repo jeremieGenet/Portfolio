@@ -22,13 +22,18 @@ class PostTable extends Table{
         function exists()  Vérif si un item existe
     */
 
+    // Récup le prochain id de la table (l'id qui sera nouvellement créé)
+    public function getNextId()
+    {
+        $req = $this->pdo->query("SHOW TABLE STATUS FROM portfolio3 LIKE '{$this->table}' ");
+        $donnees = $req->fetch();
+        return $donnees['Auto_increment'];
+    }
 
     // Insère un post dans la bdd (et insére l'id et post et l'id de la catégorie du post dans la table post_category)
     public function insert(Post $post): void
     {
-
         //dd($post->getCategories());
-
 
         // INSERTION DU POST
         $query = $this->pdo->prepare("INSERT INTO {$this->table} SET 
@@ -194,6 +199,7 @@ class PostTable extends Table{
         // Suppression des logos dans le dossier
         foreach($logos as $logo){
             // Si le fichier existe alors on supprime le fichier du dossier
+            
             if(file_exists('assets/uploads/logo/' . $logo->getName())){
                 unlink('assets/uploads/logo/' . $logo->getName());
             }

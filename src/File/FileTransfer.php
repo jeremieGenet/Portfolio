@@ -1,6 +1,7 @@
 <?php
 namespace App\File;
 
+// Gestion de l'upload de l'image principale du post
 class FileTransfer{
 
     // Upload un fichier de type 'file' ($data) dans un dossier ($path) et retourne un booléan

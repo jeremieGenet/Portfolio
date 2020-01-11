@@ -1,10 +1,14 @@
-<!-- AFFICHAGE D'UNE REALISATION -->
+<!-- AFFICHAGE D'UNE REALISATION (de la page index qui liste toutes les réalisations) -->
 <div class="item mb-5">
     <div class="media">
         <!-- Lien vers l'article sélectionné -->
         <a href="<?=  $router->url('achievement', ['slug' => $post->getSlug(), 'id' => $post->getId()]) ?>">
             <!-- IMAGE -->
-            <img src="<?= '../../assets/upload/img/'.$post->getPicture() ?>" class="mr-3 img-fluid post-thumb d-none d-md-flex" alt="Image">
+            <img 
+                src="<?= '../../assets/uploads/img/'.$post->getPicture() ?>" 
+                class="mr-3 img-fluid post-thumb d-none d-md-flex" 
+                alt="Image"
+            >
         </a>
         <div class="media-body">
             

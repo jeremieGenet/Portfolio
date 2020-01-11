@@ -59,7 +59,7 @@ $title = $post->getTitle();
     <?php endforeach ?>
     <!-- IMAGE -->
     <div class="text-center mt-3">
-        <img src="<?= '../assets/upload/img/'.$post->getPicture() ?>" 
+        <img src="<?= '../assets/uploads/img/'.$post->getPicture() ?>" 
         class="img-fluid rounded" 
         alt="<?= $post->getPicture() ?>">
     </div>
@@ -74,7 +74,7 @@ $title = $post->getTitle();
             
             <?php foreach($post->getLogoCollection() as $logo): ?>
                 
-                <img src="../../assets/upload/logo/<?= $logo->getName() ?>"
+                <img src="../../assets/uploads/logo/<?= $logo->getName() ?>"
                     style="width: 60px; height: 60px;"
                     class="rounded float-left img-thumbnail img-fluid"
                     name="<?= $logo->getNameLessExt() ?>"

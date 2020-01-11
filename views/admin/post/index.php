@@ -16,6 +16,11 @@ $pdo = Connection::getPDO();
 $link = $router->url('admin_posts');
 
 [$posts, $pagination] = (new PostTable($pdo))->findPaginated(5);
+//dd($posts);
+foreach($posts as $post){
+    //dd($post->getCategories());
+
+}
 
 ?>
 
@@ -27,11 +32,13 @@ $link = $router->url('admin_posts');
     <!-- AFFICHE LES DIFFERENTES Notifications Utilisateur -->
     <?= Notification::toast($messages) ?>
 
+
     <!-- TABLEAU DES POSTS (articles) -->
     <table class="table">
         <thead>
             <th>Id</th>
             <th>Titre</th>
+            <th>Categories</th>
             <th>Aperçu</th>
             <th>
                 <!-- BOUTON DE CREATION D'UN ARTICLE -->
@@ -51,6 +58,11 @@ $link = $router->url('admin_posts');
                         <!-- NOM DES ARTICLE -->
                         <?= htmlentities($post->getTitle()) ?>
                     </a>
+                </td>
+                <td>
+                    <?php foreach($post->getCategories() as $category): ?>
+                        <li><small><?= $category->getName() ?></small></li>
+                    <?php endforeach ?>
                 </td>
                 <td>
                     <!-- IMAGE (aperçu)  -->
@@ -77,6 +89,8 @@ $link = $router->url('admin_posts');
             <?php endforeach; ?>
         </tbody>
     </table>
+
+    <hr class="bg-primary my-4">
 
     <!-- PAGINATION -->
     <div class="d-flex justify-content-between my-4">

@@ -50,7 +50,7 @@ $form = new Form($post, $errors);
             <!-- AFFICHAGE DES LOGOS -->
             <div class="col-xs-12 col-md-9" style="width: 50px; height: 50px;">
                 <div class="row">
-                
+
                     <?php foreach($post->getLogoCollection() as $logo): ?>
                         <div class="col-xs-12 col-md-2">
                             <img src="../../assets/uploads/logo/<?= $logo->getName() ?>"
@@ -89,12 +89,12 @@ $form = new Form($post, $errors);
             name="logo-collection[]"  
             is="drop-files" label="Insérer / Ajouter vos logos ici" help="plusieurs logos possibles"
             >
-            <input type="hidden" class="form-control<?= $isInvalidLogo ?>">
+            <input type="hidden" name="logo-collection[]" class="form-control<?= $isInvalidLogo ?>">
             <small id="fileHelpLogo" class="form-text text-muted">Logos qui permettent d'illustrer la réalisation</small>
         <!-- Affichage de l'erreur LOGO dans une div class="invalid-feedback"-->
         <div class="invalid-feedback">
-            <?php if(isset($errors['logo'])): ?>  
-                <?= $errors['logo'] ?>
+            <?php if(isset($errors['logo-collection'])): ?>  
+                <?= $errors['logo-collection'] ?>
             <?php endif; ?>
         </div>
         <!--
@@ -107,7 +107,7 @@ $form = new Form($post, $errors);
         <?= $form->input('createdAt', 'Date de création'); ?>
     <?php endif ?>
 
-    <hr class="bg-light my-4">
+    <hr class="bg-primary my-4">
 
     <!-- BUTTON SOUMISSION FORMULAIRE (modification / création) -->
     <div class="d-flex justify-content-between mb-5">

@@ -67,10 +67,26 @@ class LogoTable extends Table{
         }
     }
 
-    // Récup le 'name' (persona.jpg) d'un logo via son id (utile lors de la suppresion d'un logo, voir deleteLogo.php)
-    public function findNameById()
+    
+    /**
+     * Vérif si un logo existe dans la bdd (en fonction de son nom)
+     * Signature : $logoTable->existsLogo($name); 
+     *
+     * @param mixed $value Valeur du champ
+     * @param int $except Permet d'exclure un id de la recherche, null par défaut (permet de ne pas chercher sur l'id du post en cours)
+     * @return boolean
+     */
+    public function existsLogo($name, ?int $except = null): bool
     {
-        
+        $sql = "SELECT COUNT(id) FROM {$this->table} WHERE name = ?";
+        //dd($sql);
+        // Si "$except" est différent de null (donc il est défini lors de l'utilisation de la méthode exists()) alors...
+        if($except !== null){
+            $sql .= " AND id != $except"; // On ajoute à notre requête que la recherche s'applique uniquement sur les id différents de celui passé en paramètre ($except)
+        }
+        $query = $this->pdo->prepare($sql);
+        $query->execute([$name]);
+        return (int)$query->fetch(PDO::FETCH_NUM)[0] > 0; // si le nb d'enregistrement est supérieur à 0 (c'est qu'il y a bien un enregistrement) retourne true
     }
 
 

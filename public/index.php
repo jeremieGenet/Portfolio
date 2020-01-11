@@ -34,6 +34,7 @@ $router->get('/', 'home.php', 'home'); // Direction vers la page d'accueil du si
     REALISATIONS
 */
 $router->match('/realisations', 'realisations/achievement/index.php', 'achievements');
+$router->match('/intro/realisations', 'realisations/achievement/intro.php', 'intro_achievements');
 $router->get('/realisations/category/[*:slug]-[i:id]', 'realisations/category/show.php', 'achievements-category'); // Direction vers la page des réalisations de la catégorie selectionnée
 $router->get('/realisations/[*:slug]-[i:id]', 'realisations/achievement/show.php', 'achievement'); // Direction vers la vue d'une réalisation
 

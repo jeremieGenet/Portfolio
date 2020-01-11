@@ -49,17 +49,21 @@ abstract class Table{
      *
      * @param string $field Champs à rechercher
      * @param mixed $value Valeur du champ
+     * @param int $except Permet d'exclure un id de la recherche, null par défaut (permet de ne pas chercher sur l'id du post en cours)
      * @return boolean
      */
     public function exists(string $field, $value, ?int $except = null): bool
     {
         $sql = "SELECT COUNT(id) FROM {$this->table} WHERE $field = ?";
+        //dd($field, $value, $except);
+        //dd($sql);
         // Si "$except" est différent de null (donc il est défini lors de l'utilisation de la méthode exists()) alors...
         if($except !== null){
             $sql .= " AND id != $except"; // On ajoute à notre requête que la recherche s'applique uniquement sur les id différents de celui passé en paramètre ($except)
         }
         $query = $this->pdo->prepare($sql);
         $query->execute([$value]);
+        //dd((int)$query->fetch(PDO::FETCH_NUM)[0]);
         return (int)$query->fetch(PDO::FETCH_NUM)[0] > 0; // si le nb d'enregistrement est supérieur à 0 (c'est qu'il y a bien un enregistrement) retourne true
     }
 

@@ -36,6 +36,10 @@
                             <a class="nav-link" href="<?=  $router->url('achievements') ?>">Réalisations</a>
                         </li>
                         <li class="nav-item">
+                            <!-- LIEN VERS L'intro du blog (page avec les images) -->
+                            <a class="nav-link" href="<?=  $router->url('intro_achievements') ?>">Accueil</a>
+                        </li>
+                        <li class="nav-item">
                             <!-- LIEN VERS LA GESTION DES ARTICLES (édition/suppréssion) -->
                             <a class="nav-link" href="<?=  $router->url('admin_posts') ?>">Articles</a>
                         </li>
